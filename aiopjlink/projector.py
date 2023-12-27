@@ -125,8 +125,7 @@ class PJLink:
 
         # The PJLINK authentication procedure requires the password and the first command to be
         # transmitted together.  We send a power status request for simplicity.
-        self._writer.write(bytearray(passcode_md5, encoding=self._encoding))
-        self._writer.write(b'%1POWR ?\r')
+        self._writer.write(bytearray(passcode_md5, encoding=self._encoding) + b'%1POWR ?\r')
         await self._writer.drain()
 
         # Read the first few bytes of the response - check for failed auth.
