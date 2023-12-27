@@ -202,6 +202,12 @@ class PJLink:
 
     @staticmethod
     def _parse_response(data, expect_command=None, expect_pjclass=PJClass.ONE):
+        data = data.strip(' ')
+        data = data.strip('\t')
+        data = data.strip('\r')
+        data = data.strip('\n')
+        data = data.strip('\0')
+
         # NOTE: Postels robustness principle - be conservative in what you do, be liberal in what you accept from others
         if PRINT_DEBUG_COMMS:
             print('➡️ ', data)
@@ -217,7 +223,7 @@ class PJLink:
         # Grab the command body, separator, and param.
         command = f'{data[2:6]}'.upper()
         sep = data[6]
-        param = data[7:-1]
+        param = data[7:]
 
         # Check them for correctness.
         if sep != '=':
