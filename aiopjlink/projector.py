@@ -56,6 +56,7 @@ class PJLink:
     def __init__(self, address, port=4352, password=None, timeout=4, encoding='utf-8'):
         self._reader = None
         self._writer = None
+        self._lock = asyncio.Lock()
         self._address = address
         self._port = port
         self._encoding = encoding
@@ -148,9 +149,14 @@ class PJLink:
         """ Read data until the next terminator (CR) and return the
         message (including CR) as a decoded string."""
         try:
-            raw = await asyncio.wait_for(self._reader.readuntil(b'\r'), self._timeout)
+            async with asyncio.timeout(self._timeout):
+                await self._lock.acquire()
+                raw = await self._reader.readuntil(b'\r')
         except asyncio.IncompleteReadError as err:
             raise PJLinkConnectionClosed('projector closed the connection') from err
+        finally:
+            if self._lock.locked():
+                self._lock.release()
         return raw.decode(self._encoding)
 
     async def transmit(self, command, param, pjclass: PJClass):
